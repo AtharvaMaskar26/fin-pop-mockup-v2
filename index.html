@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Stock Preview Feed</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      overflow: hidden;
+      font-family: 'Inter', sans-serif;
+      background: #f4f4f4;
+    }
+
+    #container {
+      height: 100vh;
+      width: 100vw;
+      overflow-y: scroll;
+      scroll-snap-type: y mandatory;
+      -webkit-overflow-scrolling: touch;
+      scroll-behavior: smooth;
+    }
+
+    .card {
+      scroll-snap-align: start;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+      background: #fff;
+      position: relative;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeIn 0.6s ease forwards;
+    }
+
+    @keyframes fadeIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .progress-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 4px;
+      background: #333;
+      width: 0;
+      animation: fillBar 7s linear forwards;
+    }
+
+    @keyframes fillBar {
+      to {
+        width: 100%;
+      }
+    }
+
+    .image-section {
+      height: 40%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+    }
+
+    .image-section img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 12px;
+    }
+
+    .summary-section {
+      height: 40%;
+      padding: 0 24px;
+      overflow-y: auto;
+    }
+
+    .summary-section .title {
+      font-size: 1.4rem;
+      font-weight: 600;
+      margin: 16px 0 8px;
+    }
+
+    .summary-section .summary {
+      font-size: 1rem;
+      color: #333;
+      line-height: 1.5;
+    }
+
+    .tags-section {
+      height: 20%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 0 24px;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .tag {
+      background: #e0e0e0;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+    }
+
+    .progress-indicator {
+      position: fixed;
+      top: 10px;
+      left: 20px;
+      display: flex;
+      gap: 6px;
+      z-index: 1000;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: #ccc;
+      transition: background-color 0.3s;
+    }
+
+    .dot.active {
+      background-color: #333;
+    }
+
+    #mode-toggle {
+      position: fixed;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1001;
+    }
+
+    #toggleBtn {
+      background: #fff;
+      border: 1px solid #ccc;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    #detail-view {
+      position: fixed;
+      top: 0;
+      left: 100%;
+      width: 100%;
+      height: 100vh;
+      background: white;
+      z-index: 2000;
+      transition: left 0.3s ease-in-out;
+      overflow-y: auto;
+      padding: 24px;
+      box-sizing: border-box;
+    }
+
+    #detail-view.show {
+      left: 0;
+    }
+
+    #detail-view button {
+      margin-top: 20px;
+      padding: 10px 16px;
+      background: #f0f0f0;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="progress-indicator" id="progress"></div>
+  <div id="mode-toggle">
+    <button id="toggleBtn">🌈 GenZ Mode</button>
+  </div>
+  <div id="detail-view"></div>
+  <div id="container"></div>
+
+  <script>
+    let mode = 'genz';
+
+    const stocks = [
+      {
+        image: 'https://upload.wikimedia.org/wikipedia/commons/5/5e/HUL_Logo.svg',
+        title: 'Hindustan Unilever: Stable FMCG Leader',
+        summary: `Strong FMCG market leader with excellent cash flow generation. Operating cash flow jumped from ₹9,626 Cr (FY23) to ₹14,884 Cr (FY24). Promoter holding stable at 61.9%. Debt-free balance sheet with strong parent support.`,
+        detailedReport: `🧾 Detailed Report:\n\n- Revenue CAGR: 12%\n- Market Cap: ₹5.5 Lakh Cr\n- Net Profit Margin: 18%\n- Major brands: Dove, Surf Excel, Horlicks\n- Solid ESG focus and zero-debt`,
+        valuation: 'Fairly Valued',
+        sentiment: 'Neutral',
+        rating: 'Hold'
+      },
+      {
+        image: 'https://upload.wikimedia.org/wikipedia/commons/0/04/Tata_Consultancy_Services_Logo.svg',
+        title: 'TCS: Reliable Tech Giant with Steady Growth',
+        summary: `Steady revenue growth with strong operating margins. Promoter holding at 72%. Attractive dividend history.`,
+        detailedReport: `🧾 Detailed Report:\n\n- Consistent growth in IT services\n- Net Profit: ₹40,000 Cr\n- Dividend Yield: 3.4%\n- Global presence with over 100 clients in Fortune 500\n- Robust hiring and training programs`,
+        valuation: 'Undervalued',
+        sentiment: 'Bullish',
+        rating: 'Strong Buy'
+      }
+    ];
+
+    const container = document.getElementById('container');
+    const progress = document.getElementById('progress');
+    const detailView = document.getElementById('detail-view');
+
+    document.getElementById('toggleBtn').addEventListener('click', () => {
+      mode = mode === 'genz' ? 'pro' : 'genz';
+      document.getElementById('toggleBtn').textContent = mode === 'genz' ? '🌈 GenZ Mode' : '📊 Pro Mode';
+      renderAllCards();
+    });
+
+    function renderAllCards() {
+      container.innerHTML = '';
+      stocks.forEach((stock, i) => {
+        container.appendChild(createCard(stock, i));
+      });
+      updateProgressIndicator(stocks.length);
+    }
+
+    function createCard(stock, index) {
+  const div = document.createElement('div');
+  div.className = 'card';
+  div.setAttribute('data-index', index);
+
+  const summary = mode === 'genz'
+    ? `✨ ${stock.summary} 🤓`
+    : stock.summary;
+
+  div.innerHTML = `
+    <div class="progress-bar"></div>
+    <div class="image-section">
+      <img src="${stock.image}" alt="Stock Image" />
+    </div>
+    <div class="summary-section">
+      <div class="title">${stock.title}</div>
+      <div class="summary">${summary}</div>
+    </div>
+    <div class="tags-section">
+      <div class="tags">
+        <span class="tag">Valuation: ${stock.valuation}</span>
+        <span class="tag">Sentiment: ${stock.sentiment}</span>
+        <span class="tag">Rating: ${stock.rating}</span>
+      </div>
+    </div>
+  `;
+
+  // Swipe gesture detection
+  let startX = 0;
+  let startY = 0;
+  let isSwiping = false;
+
+  div.addEventListener('touchstart', (e) => {
+    const touch = e.touches[0];
+    startX = touch.clientX;
+    startY = touch.clientY;
+    isSwiping = true;
+  });
+
+  div.addEventListener('touchmove', (e) => {
+    if (!isSwiping) return;
+
+    const touch = e.touches[0];
+    const deltaX = touch.clientX - startX;
+    const deltaY = touch.clientY - startY;
+
+    // If vertical movement is greater, it's a scroll — cancel swipe
+    if (Math.abs(deltaY) > Math.abs(deltaX)) {
+      isSwiping = false;
+      return;
+    }
+
+    // If swipe right and exceeds threshold
+    if (deltaX > 100) {
+      isSwiping = false;
+      showDetail(stock);
+    }
+  });
+
+  div.addEventListener('touchend', () => {
+    isSwiping = false;
+  });
+
+  return div;
+}
+
+
+    function showDetail(stock) {
+      detailView.innerHTML = `
+        <h2>${stock.title}</h2>
+        <pre>${stock.detailedReport || 'No detailed data available.'}</pre>
+        <button onclick="closeDetail()">⬅️ Back</button>
+      `;
+      detailView.classList.add('show');
+    }
+
+    function closeDetail() {
+      detailView.classList.remove('show');
+    }
+
+    function updateProgressIndicator(total) {
+      progress.innerHTML = '';
+      for (let i = 0; i < total; i++) {
+        const dot = document.createElement('div');
+        dot.className = 'dot';
+        progress.appendChild(dot);
+      }
+      updateActiveDot();
+    }
+
+    function updateActiveDot() {
+      const scrollTop = container.scrollTop;
+      const activeIndex = Math.round(scrollTop / window.innerHeight);
+      const dots = document.querySelectorAll('.dot');
+      dots.forEach((dot, i) => {
+        dot.classList.toggle('active', i === activeIndex);
+      });
+    }
+
+    function loadMoreCards() {
+      const currentCount = document.querySelectorAll('.card').length;
+      stocks.forEach((stock, i) => {
+        container.appendChild(createCard(stock, currentCount + i));
+      });
+      updateProgressIndicator(document.querySelectorAll('.card').length);
+    }
+
+    // Initial load
+    renderAllCards();
+
+    // Infinite scroll trigger
+    container.addEventListener('scroll', () => {
+      updateActiveDot();
+      if (container.scrollTop + container.clientHeight >= container.scrollHeight - 10) {
+        loadMoreCards();
+      }
+    });
+  </script>
+</body>
+</html>
