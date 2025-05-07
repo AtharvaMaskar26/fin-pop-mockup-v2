@@ -8,14 +8,14 @@
     html, body {
       margin: 0;
       padding: 0;
-      height: 100vh;
+      height: 100dvh;
       overflow: hidden;
       font-family: 'Inter', sans-serif;
       background: #f4f4f4;
     }
 
     #container {
-      height: 100vh;
+      height: 100dvh;
       width: 100vw;
       overflow-y: scroll;
       scroll-snap-type: y mandatory;
@@ -25,7 +25,7 @@
 
     .card {
       scroll-snap-align: start;
-      height: 100vh;
+      height: 100dvh;
       display: flex;
       flex-direction: column;
       box-sizing: border-box;
@@ -156,7 +156,7 @@
       top: 0;
       left: 100%;
       width: 100%;
-      height: 100vh;
+      height: 100dvh;
       background: white;
       z-index: 2000;
       transition: left 0.3s ease-in-out;
@@ -177,14 +177,80 @@
       border-radius: 8px;
       cursor: pointer;
     }
+
+    #mode-toggle {
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1002;
+}
+
+.toggle-wrapper {
+  width: 160px;
+  height: 40px;
+  position: relative;
+}
+
+.toggle-label {
+  background: #e0e0e0;
+  border-radius: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px;
+  cursor: pointer;
+  position: relative;
+  height: 100%;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #555;
+  user-select: none;
+  box-shadow: 0 0 5px rgba(0,0,0,0.15);
+}
+
+.toggle-label .toggle-option {
+  z-index: 1;
+  width: 50%;
+  text-align: center;
+}
+
+.toggle-slider {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 50%;
+  height: 36px;
+  background: linear-gradient(45deg, #ff6ec4, #7873f5);
+  border-radius: 30px;
+  transition: left 0.3s ease;
+  z-index: 0;
+}
+
+#toggleSwitch {
+  display: none;
+}
+
+#toggleSwitch:checked + .toggle-label .toggle-slider {
+  left: calc(50% + 2px);
+}
+
   </style>
 </head>
 <body>
 
   <div class="progress-indicator" id="progress"></div>
   <div id="mode-toggle">
-    <button id="toggleBtn">🌈 GenZ Mode</button>
+    <div class="toggle-wrapper">
+      <input type="checkbox" id="toggleSwitch" />
+      <label for="toggleSwitch" class="toggle-label">
+        <span class="toggle-option">🧠 Pro</span>
+        <span class="toggle-option">🌈 GenZ</span>
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
   </div>
+  
   <div id="detail-view"></div>
   <div id="container"></div>
 
@@ -229,6 +295,13 @@
       });
       updateProgressIndicator(stocks.length);
     }
+
+    const toggleSwitch = document.getElementById('toggleSwitch');
+
+toggleSwitch.addEventListener('change', () => {
+  mode = toggleSwitch.checked ? 'genz' : 'pro';
+  renderAllCards();
+});
 
     function createCard(stock, index) {
   const div = document.createElement('div');
