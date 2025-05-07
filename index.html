@@ -139,16 +139,56 @@
       top: 10px;
       left: 50%;
       transform: translateX(-50%);
-      z-index: 1001;
+      z-index: 1002;
     }
 
-    #toggleBtn {
-      background: #fff;
-      border: 1px solid #ccc;
-      padding: 8px 16px;
-      border-radius: 20px;
-      font-weight: bold;
+    .toggle-wrapper {
+      width: 160px;
+      height: 40px;
+      position: relative;
+    }
+
+    .toggle-label {
+      background: #e0e0e0;
+      border-radius: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 8px;
       cursor: pointer;
+      position: relative;
+      height: 100%;
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: #555;
+      user-select: none;
+      box-shadow: 0 0 5px rgba(0,0,0,0.15);
+    }
+
+    .toggle-label .toggle-option {
+      z-index: 1;
+      width: 50%;
+      text-align: center;
+    }
+
+    .toggle-slider {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 50%;
+      height: 36px;
+      background: linear-gradient(45deg, #ff6ec4, #7873f5);
+      border-radius: 30px;
+      transition: left 0.3s ease;
+      z-index: 0;
+    }
+
+    #toggleSwitch {
+      display: none;
+    }
+
+    #toggleSwitch:checked + .toggle-label .toggle-slider {
+      left: calc(50% + 2px);
     }
 
     #detail-view {
@@ -177,249 +217,181 @@
       border-radius: 8px;
       cursor: pointer;
     }
-
-    #mode-toggle {
-  position: fixed;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1002;
-}
-
-.toggle-wrapper {
-  width: 160px;
-  height: 40px;
-  position: relative;
-}
-
-.toggle-label {
-  background: #e0e0e0;
-  border-radius: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 8px;
-  cursor: pointer;
-  position: relative;
-  height: 100%;
-  font-weight: 600;
-  font-size: 0.95rem;
-  color: #555;
-  user-select: none;
-  box-shadow: 0 0 5px rgba(0,0,0,0.15);
-}
-
-.toggle-label .toggle-option {
-  z-index: 1;
-  width: 50%;
-  text-align: center;
-}
-
-.toggle-slider {
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 50%;
-  height: 36px;
-  background: linear-gradient(45deg, #ff6ec4, #7873f5);
-  border-radius: 30px;
-  transition: left 0.3s ease;
-  z-index: 0;
-}
-
-#toggleSwitch {
-  display: none;
-}
-
-#toggleSwitch:checked + .toggle-label .toggle-slider {
-  left: calc(50% + 2px);
-}
-
   </style>
 </head>
 <body>
-
   <div class="progress-indicator" id="progress"></div>
+
   <div id="mode-toggle">
     <div class="toggle-wrapper">
       <input type="checkbox" id="toggleSwitch" />
       <label for="toggleSwitch" class="toggle-label">
-        <span class="toggle-option">🧠 Pro</span>
+        <span class="toggle-option">📊 Pro</span>
         <span class="toggle-option">🌈 GenZ</span>
         <span class="toggle-slider"></span>
       </label>
     </div>
   </div>
-  
+
   <div id="detail-view"></div>
   <div id="container"></div>
 
   <script>
-    let mode = 'genz';
+    document.addEventListener('DOMContentLoaded', () => {
+      const toggleSwitch = document.getElementById('toggleSwitch');
+      const container = document.getElementById('container');
+      const progress = document.getElementById('progress');
+      const detailView = document.getElementById('detail-view');
+      let mode = toggleSwitch.checked ? 'genz' : 'pro';
 
-    const stocks = [
-      {
-        image: 'https://upload.wikimedia.org/wikipedia/commons/5/5e/HUL_Logo.svg',
-        title: 'Hindustan Unilever: Stable FMCG Leader',
-        summary: `Strong FMCG market leader with excellent cash flow generation. Operating cash flow jumped from ₹9,626 Cr (FY23) to ₹14,884 Cr (FY24). Promoter holding stable at 61.9%. Debt-free balance sheet with strong parent support.`,
-        detailedReport: `🧾 Detailed Report:\n\n- Revenue CAGR: 12%\n- Market Cap: ₹5.5 Lakh Cr\n- Net Profit Margin: 18%\n- Major brands: Dove, Surf Excel, Horlicks\n- Solid ESG focus and zero-debt`,
-        valuation: 'Fairly Valued',
-        sentiment: 'Neutral',
-        rating: 'Hold'
-      },
-      {
-        image: 'https://upload.wikimedia.org/wikipedia/commons/0/04/Tata_Consultancy_Services_Logo.svg',
-        title: 'TCS: Reliable Tech Giant with Steady Growth',
-        summary: `Steady revenue growth with strong operating margins. Promoter holding at 72%. Attractive dividend history.`,
-        detailedReport: `🧾 Detailed Report:\n\n- Consistent growth in IT services\n- Net Profit: ₹40,000 Cr\n- Dividend Yield: 3.4%\n- Global presence with over 100 clients in Fortune 500\n- Robust hiring and training programs`,
-        valuation: 'Undervalued',
-        sentiment: 'Bullish',
-        rating: 'Strong Buy'
+      const stocks = [
+        {
+          image: 'https://upload.wikimedia.org/wikipedia/commons/5/5e/HUL_Logo.svg',
+          title: 'Hindustan Unilever: Stable FMCG Leader',
+          summary: `Strong FMCG market leader with excellent cash flow generation. Operating cash flow jumped from ₹9,626 Cr (FY23) to ₹14,884 Cr (FY24). Promoter holding stable at 61.9%. Debt-free balance sheet with strong parent support.`,
+          detailedReport: `🧾 Detailed Report:\n\n- Revenue CAGR: 12%\n- Market Cap: ₹5.5 Lakh Cr\n- Net Profit Margin: 18%\n- Major brands: Dove, Surf Excel, Horlicks\n- Solid ESG focus and zero-debt`,
+          valuation: 'Fairly Valued',
+          sentiment: 'Neutral',
+          rating: 'Hold'
+        },
+        {
+          image: 'https://upload.wikimedia.org/wikipedia/commons/0/04/Tata_Consultancy_Services_Logo.svg',
+          title: 'TCS: Reliable Tech Giant with Steady Growth',
+          summary: `Steady revenue growth with strong operating margins. Promoter holding at 72%. Attractive dividend history.`,
+          detailedReport: `🧾 Detailed Report:\n\n- Consistent growth in IT services\n- Net Profit: ₹40,000 Cr\n- Dividend Yield: 3.4%\n- Global presence with over 100 clients in Fortune 500\n- Robust hiring and training programs`,
+          valuation: 'Undervalued',
+          sentiment: 'Bullish',
+          rating: 'Strong Buy'
+        }
+      ];
+
+      toggleSwitch.addEventListener('change', () => {
+        mode = toggleSwitch.checked ? 'genz' : 'pro';
+        renderAllCards();
+      });
+
+      function renderAllCards() {
+        container.innerHTML = '';
+        stocks.forEach((stock, i) => {
+          container.appendChild(createCard(stock, i));
+        });
+        updateProgressIndicator(stocks.length);
       }
-    ];
 
-    const container = document.getElementById('container');
-    const progress = document.getElementById('progress');
-    const detailView = document.getElementById('detail-view');
+      function createCard(stock, index) {
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.setAttribute('data-index', index);
 
-    document.getElementById('toggleBtn').addEventListener('click', () => {
-      mode = mode === 'genz' ? 'pro' : 'genz';
-      document.getElementById('toggleBtn').textContent = mode === 'genz' ? '🌈 GenZ Mode' : '📊 Pro Mode';
+        const summary = mode === 'genz'
+          ? `✨ ${stock.summary} 🤓`
+          : stock.summary;
+
+        div.innerHTML = `
+          <div class="progress-bar"></div>
+          <div class="image-section">
+            <img src="${stock.image}" alt="Stock Image" />
+          </div>
+          <div class="summary-section">
+            <div class="title">${stock.title}</div>
+            <div class="summary">${summary}</div>
+          </div>
+          <div class="tags-section">
+            <div class="tags">
+              <span class="tag">Valuation: ${stock.valuation}</span>
+              <span class="tag">Sentiment: ${stock.sentiment}</span>
+              <span class="tag">Rating: ${stock.rating}</span>
+            </div>
+          </div>
+        `;
+
+        // Left swipe detection
+        let startX = 0;
+        let startY = 0;
+        let isSwiping = false;
+
+        div.addEventListener('touchstart', (e) => {
+          const touch = e.touches[0];
+          startX = touch.clientX;
+          startY = touch.clientY;
+          isSwiping = true;
+        });
+
+        div.addEventListener('touchmove', (e) => {
+          if (!isSwiping) return;
+
+          const touch = e.touches[0];
+          const deltaX = touch.clientX - startX;
+          const deltaY = touch.clientY - startY;
+
+          if (Math.abs(deltaY) > Math.abs(deltaX)) {
+            isSwiping = false;
+            return;
+          }
+
+          if (deltaX < -100) {
+            isSwiping = false;
+            showDetail(stock);
+          }
+        });
+
+        div.addEventListener('touchend', () => {
+          isSwiping = false;
+        });
+
+        return div;
+      }
+
+      function showDetail(stock) {
+        detailView.innerHTML = `
+          <h2>${stock.title}</h2>
+          <pre>${stock.detailedReport || 'No detailed data available.'}</pre>
+          <button onclick="closeDetail()">⬅️ Back</button>
+        `;
+        detailView.classList.add('show');
+      }
+
+      function closeDetail() {
+        detailView.classList.remove('show');
+      }
+
+      window.closeDetail = closeDetail;
+      
+      function updateProgressIndicator(total) {
+        progress.innerHTML = '';
+        for (let i = 0; i < total; i++) {
+          const dot = document.createElement('div');
+          dot.className = 'dot';
+          progress.appendChild(dot);
+        }
+        updateActiveDot();
+      }
+
+      function updateActiveDot() {
+        const scrollTop = container.scrollTop;
+        const activeIndex = Math.round(scrollTop / window.innerHeight);
+        const dots = document.querySelectorAll('.dot');
+        dots.forEach((dot, i) => {
+          dot.classList.toggle('active', i === activeIndex);
+        });
+      }
+
+      function loadMoreCards() {
+        const currentCount = document.querySelectorAll('.card').length;
+        stocks.forEach((stock, i) => {
+          container.appendChild(createCard(stock, currentCount + i));
+        });
+        updateProgressIndicator(document.querySelectorAll('.card').length);
+      }
+
       renderAllCards();
-    });
 
-    function renderAllCards() {
-      container.innerHTML = '';
-      stocks.forEach((stock, i) => {
-        container.appendChild(createCard(stock, i));
+      container.addEventListener('scroll', () => {
+        updateActiveDot();
+        if (container.scrollTop + container.clientHeight >= container.scrollHeight - 10) {
+          loadMoreCards();
+        }
       });
-      updateProgressIndicator(stocks.length);
-    }
-
-    const toggleSwitch = document.getElementById('toggleSwitch');
-
-toggleSwitch.addEventListener('change', () => {
-  mode = toggleSwitch.checked ? 'genz' : 'pro';
-  renderAllCards();
-});
-
-    function createCard(stock, index) {
-  const div = document.createElement('div');
-  div.className = 'card';
-  div.setAttribute('data-index', index);
-
-  const summary = mode === 'genz'
-    ? `✨ ${stock.summary} 🤓`
-    : stock.summary;
-
-  div.innerHTML = `
-    <div class="progress-bar"></div>
-    <div class="image-section">
-      <img src="${stock.image}" alt="Stock Image" />
-    </div>
-    <div class="summary-section">
-      <div class="title">${stock.title}</div>
-      <div class="summary">${summary}</div>
-    </div>
-    <div class="tags-section">
-      <div class="tags">
-        <span class="tag">Valuation: ${stock.valuation}</span>
-        <span class="tag">Sentiment: ${stock.sentiment}</span>
-        <span class="tag">Rating: ${stock.rating}</span>
-      </div>
-    </div>
-  `;
-
-  // Swipe gesture detection (for left swipe)
-  let startX = 0;
-  let startY = 0;
-  let isSwiping = false;
-
-  div.addEventListener('touchstart', (e) => {
-    const touch = e.touches[0];
-    startX = touch.clientX;
-    startY = touch.clientY;
-    isSwiping = true;
-  });
-
-  div.addEventListener('touchmove', (e) => {
-    if (!isSwiping) return;
-
-    const touch = e.touches[0];
-    const deltaX = touch.clientX - startX;
-    const deltaY = touch.clientY - startY;
-
-    // Cancel swipe if mostly vertical movement
-    if (Math.abs(deltaY) > Math.abs(deltaX)) {
-      isSwiping = false;
-      return;
-    }
-
-    // Detect left swipe
-    if (deltaX < -100) {
-      isSwiping = false;
-      showDetail(stock);  // Show detail on left swipe
-    }
-  });
-
-  div.addEventListener('touchend', () => {
-    isSwiping = false;
-  });
-
-  return div;
-}
-
-
-
-    function showDetail(stock) {
-      detailView.innerHTML = `
-        <h2>${stock.title}</h2>
-        <pre>${stock.detailedReport || 'No detailed data available.'}</pre>
-        <button onclick="closeDetail()">⬅️ Back</button>
-      `;
-      detailView.classList.add('show');
-    }
-
-    function closeDetail() {
-      detailView.classList.remove('show');
-    }
-
-    function updateProgressIndicator(total) {
-      progress.innerHTML = '';
-      for (let i = 0; i < total; i++) {
-        const dot = document.createElement('div');
-        dot.className = 'dot';
-        progress.appendChild(dot);
-      }
-      updateActiveDot();
-    }
-
-    function updateActiveDot() {
-      const scrollTop = container.scrollTop;
-      const activeIndex = Math.round(scrollTop / window.innerHeight);
-      const dots = document.querySelectorAll('.dot');
-      dots.forEach((dot, i) => {
-        dot.classList.toggle('active', i === activeIndex);
-      });
-    }
-
-    function loadMoreCards() {
-      const currentCount = document.querySelectorAll('.card').length;
-      stocks.forEach((stock, i) => {
-        container.appendChild(createCard(stock, currentCount + i));
-      });
-      updateProgressIndicator(document.querySelectorAll('.card').length);
-    }
-
-    // Initial load
-    renderAllCards();
-
-    // Infinite scroll trigger
-    container.addEventListener('scroll', () => {
-      updateActiveDot();
-      if (container.scrollTop + container.clientHeight >= container.scrollHeight - 10) {
-        loadMoreCards();
-      }
     });
   </script>
 </body>
