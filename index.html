@@ -217,6 +217,32 @@
       border-radius: 8px;
       cursor: pointer;
     }
+
+    .reactions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin: 12px auto;
+}
+
+.reaction {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.reaction.clicked {
+  animation: pop 0.3s ease;
+}
+
+@keyframes pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.4); }
+  100% { transform: scale(1); }
+}
+
   </style>
 </head>
 <body>
@@ -279,68 +305,92 @@
       }
 
       function createCard(stock, index) {
-        const div = document.createElement('div');
-        div.className = 'card';
-        div.setAttribute('data-index', index);
+  const div = document.createElement('div');
+  div.className = 'card';
+  div.setAttribute('data-index', index);
 
-        const summary = mode === 'genz'
-          ? `✨ ${stock.summary} 🤓`
-          : stock.summary;
+  const summary = mode === 'genz'
+    ? `✨ ${stock.summary} 🤓`
+    : stock.summary;
 
-        div.innerHTML = `
-          <div class="progress-bar"></div>
-          <div class="image-section">
-            <img src="${stock.image}" alt="Stock Image" />
-          </div>
-          <div class="summary-section">
-            <div class="title">${stock.title}</div>
-            <div class="summary">${summary}</div>
-          </div>
-          <div class="tags-section">
-            <div class="tags">
-              <span class="tag">Valuation: ${stock.valuation}</span>
-              <span class="tag">Sentiment: ${stock.sentiment}</span>
-              <span class="tag">Rating: ${stock.rating}</span>
-            </div>
-          </div>
-        `;
+  div.innerHTML = `
+    <div class="progress-bar"></div>
+    <div class="image-section">
+      <img src="${stock.image}" alt="Stock Image" />
+    </div>
+    <div class="summary-section">
+      <div class="title">${stock.title}</div>
+      <div class="summary">${summary}</div>
+    </div>
+    <div class="tags-section">
+      <div class="tags">
+        <span class="tag">Valuation: ${stock.valuation}</span>
+        <span class="tag">Sentiment: ${stock.sentiment}</span>
+        <span class="tag">Rating: ${stock.rating}</span>
+      </div>
+    </div>
+    <div class="reactions">
+      <button class="reaction" data-type="fomo">💸 <span class="count">0</span></button>
+      <button class="reaction" data-type="snooze">🥱 <span class="count">0</span></button>
+      <button class="reaction" data-type="allin">🤑 <span class="count">0</span></button>
+    </div>
+  `;
 
-        // Left swipe detection
-        let startX = 0;
-        let startY = 0;
-        let isSwiping = false;
+  // 🎯 Reaction button logic
+  const reactions = ['fomo', 'snooze', 'allin'];
+  reactions.forEach(type => {
+    const button = div.querySelector(`.reaction[data-type="${type}"]`);
+    const countSpan = button.querySelector('.count');
 
-        div.addEventListener('touchstart', (e) => {
-          const touch = e.touches[0];
-          startX = touch.clientX;
-          startY = touch.clientY;
-          isSwiping = true;
-        });
+    button.addEventListener('click', () => {
+      let count = parseInt(countSpan.textContent, 10);
+      count++;
+      countSpan.textContent = count;
+      button.classList.add('clicked');
 
-        div.addEventListener('touchmove', (e) => {
-          if (!isSwiping) return;
+      setTimeout(() => {
+        button.classList.remove('clicked');
+      }, 300);
+    });
+  });
 
-          const touch = e.touches[0];
-          const deltaX = touch.clientX - startX;
-          const deltaY = touch.clientY - startY;
+  // 👈 Left swipe detection
+  let startX = 0;
+  let startY = 0;
+  let isSwiping = false;
 
-          if (Math.abs(deltaY) > Math.abs(deltaX)) {
-            isSwiping = false;
-            return;
-          }
+  div.addEventListener('touchstart', (e) => {
+    const touch = e.touches[0];
+    startX = touch.clientX;
+    startY = touch.clientY;
+    isSwiping = true;
+  });
 
-          if (deltaX < -100) {
-            isSwiping = false;
-            showDetail(stock);
-          }
-        });
+  div.addEventListener('touchmove', (e) => {
+    if (!isSwiping) return;
 
-        div.addEventListener('touchend', () => {
-          isSwiping = false;
-        });
+    const touch = e.touches[0];
+    const deltaX = touch.clientX - startX;
+    const deltaY = touch.clientY - startY;
 
-        return div;
-      }
+    if (Math.abs(deltaY) > Math.abs(deltaX)) {
+      isSwiping = false;
+      return;
+    }
+
+    if (deltaX < -100) {
+      isSwiping = false;
+      showDetail(stock);
+    }
+  });
+
+  div.addEventListener('touchend', () => {
+    isSwiping = false;
+  });
+
+  return div;
+}
+
 
       function showDetail(stock) {
         detailView.innerHTML = `
@@ -393,6 +443,25 @@
         }
       });
     });
+
+    // Reaction Logic
+const reactions = ['fomo', 'snooze', 'allin'];
+reactions.forEach(type => {
+  const button = div.querySelector(`.reaction[data-type="${type}"]`);
+  const countSpan = button.querySelector('.count');
+
+  button.addEventListener('click', () => {
+    let count = parseInt(countSpan.textContent, 10);
+    count++;
+    countSpan.textContent = count;
+    button.classList.add('clicked');
+
+    setTimeout(() => {
+      button.classList.remove('clicked');
+    }, 300);
+  });
+});
+
   </script>
 </body>
 </html>
