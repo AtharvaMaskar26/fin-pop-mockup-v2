@@ -445,6 +445,41 @@
       }
 
       window.closeDetail = closeDetail;
+
+    // Swipe right to close detail view
+    let detailStartX = 0;
+    let detailStartY = 0;
+    let detailSwiping = false;
+
+    detailView.addEventListener('touchstart', (e) => {
+      const touch = e.touches[0];
+      detailStartX = touch.clientX;
+      detailStartY = touch.clientY;
+      detailSwiping = true;
+    });
+
+    detailView.addEventListener('touchmove', (e) => {
+      if (!detailSwiping) return;
+
+      const touch = e.touches[0];
+      const deltaX = touch.clientX - detailStartX;
+      const deltaY = touch.clientY - detailStartY;
+
+      if (Math.abs(deltaY) > Math.abs(deltaX)) {
+        detailSwiping = false;
+        return;
+      }
+
+      if (deltaX > 100) { // Swipe right
+        detailSwiping = false;
+        closeDetail();
+      }
+    });
+
+    detailView.addEventListener('touchend', () => {
+      detailSwiping = false;
+    });
+
       
       function updateProgressIndicator(total) {
         progress.innerHTML = '';
