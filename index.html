@@ -257,7 +257,7 @@
     </div>
   `;
 
-  // Swipe gesture detection
+  // Swipe gesture detection (for left swipe)
   let startX = 0;
   let startY = 0;
   let isSwiping = false;
@@ -276,16 +276,16 @@
     const deltaX = touch.clientX - startX;
     const deltaY = touch.clientY - startY;
 
-    // If vertical movement is greater, it's a scroll — cancel swipe
+    // Cancel swipe if mostly vertical movement
     if (Math.abs(deltaY) > Math.abs(deltaX)) {
       isSwiping = false;
       return;
     }
 
-    // If swipe right and exceeds threshold
-    if (deltaX > 100) {
+    // Detect left swipe
+    if (deltaX < -100) {
       isSwiping = false;
-      showDetail(stock);
+      showDetail(stock);  // Show detail on left swipe
     }
   });
 
@@ -295,6 +295,7 @@
 
   return div;
 }
+
 
 
     function showDetail(stock) {
